@@ -77,7 +77,7 @@ The following scenarios are using the McFL model, which is based on the McFarlan
 
 Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
-#### Scenario 1: Varying fitness
+#### Scenario 1: Low ITH
 
 Starting from a random fitness landscape with few genotypes (3 genotypes) and low variations in fitness (therefore, fitness is almost neutral):
 
