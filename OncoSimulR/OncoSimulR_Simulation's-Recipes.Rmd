@@ -69,18 +69,41 @@ Clinical implications of ITH: This heterogeneity has consequences for diagnosis,
 
 Modeling ITH in OncoSimulR
 
-```{r cars}
-summary(cars)
-```
 
-## Including Plots
+The following scenarios are using the McFL model, which is based on the McFarland model of tumor growth. 
+The most important characteristics of this model are the followings:
+Fitness-dependent Growth: Each genotype grows at a rate proportional to its fitness relative to the population's average fitness.
+Competition: There is explicit competition among clones for shared resources or space.
+Population Size Dynamics: The total population size is not fixed but fluctuates based on the relative fitness of clones.
+Carrying Capacity: There is an implicit assumption of limited resources, which creates a competitive environment among clones.
 
-You can also embed plots, for example:
+Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, thinking of advanced tumors, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+Tunnelling:
+A very visual way to show what happens to our simulations when we stray away from the SSWM regime (and thus, our population is no longer monotypic) is the appearance of “prohibited” genotypes, understanding “prohibited” as those genotypes that are not possible according to our DAG.
+If we were, say, to model a scenario as: WT → A → B → C, then “B”, “C”, “A, C” and “B, C” would be prohibited genotypes. The only possible genotypes according to our DAG would be “WT”, “A”, “A, B” and “A, B, C”.
+If we run 1000 simulations under a SSWM regime, the chance of finding these genotypes in our population is very low; however, when we change the parameters and move away from SSWM, these prohibited genotypes appear almost always.
+Could this be due to the stochastic tunnelling effect?
+Stochastic tunnelling (STUN) is a phenomenon in which a step with low fitness is skipped. For example, in a scenario as “WT → A → B” where the fitness of A is lower than WT and the fitness of B is higher, a population of cancer cells could be able to tunnel from WT to B without ever reaching A. This description is paraphrased from Iwasa et al (2004).
+Under deterministic models and SSWM regimes, either tunnelling is not possible, or the order restrictions have been violated (as it appears to be the case). It can, however, happen under SSSM or WSSM regimes. Also, STUN is not a problem to consider under stochastic methods.
+## I’m not sure how to check what methods OncoSimul is using…
+## Maybe it uses all and makes a consensus, idk
+# DAG: WT -> A -> B -> C
+my_DAG_3 <- allFitnessEffects(
+  data.frame(parent = c("Root", "A"),
+         	child = c("A", "B"),
+         	s = c(-0.1, 0.5),
+         	sh = 0.0,
+         	typeDep = "MN"),
+  drvNames = c("A", "B"))
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+In this DAG the fitness of “A” is 0.9 and the fitness of “B” is 1.0, because sh is set to 0.0, so the simulation, under not SSWM, could go from “WT” to “A, B”. Assuming that we used keepPhylog = TRUE, the plot from plotClonePhylog() would show that the Line of Descent (LOD) is actually WT → B → A, B. In a monotypic population (SSWM), however), “A, B” won’t probably ever happen, because A is deleterious and tunneling is improbable.
 
-# References
+The LOD is actually stored as a df in simulation[["other"]][["LOD_DF"]]. As it can be seen upon inspection, in non-monotypic populations there is a row in which the parent is “B” and the child is “A, B”. This could be categorized as tunneling, for the correct LOD according to our DAG should be “A” → “A, B”, which is not present. In fact, in the monotypic population neither of the formerly mentioned appear, as “B” → “A, B” would violate the order restrictions and “A” is deleterious. However, “WT” → “B” does appear in these monotypic populations, but it never reaches fixation.
+
+However, this is possible because “B” is not deleterious compared to “A”. A more strict definition of STUN would require “WT” → “A, B” without “A” or “B” ever happening. That is, that the Path of the mAximum (POM) and the LOD should not be the same.
+First we need to make B also deleterious, turning sh into a negative value. Upon inspecting plot(EvalAllGenotypes(DAG)), The POM is “WT” → “A, B” because “A” and “B” are now both deleterious. If we run the simulations 1000 times for both monotypic and non-monotypic and then inspect all their LODs, “WT” → “A, B” does not occur ever.
+
+Thus, we could conclude that stochastic tunneling, as  
+
+## References
