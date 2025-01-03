@@ -125,6 +125,16 @@ plot(out1, show = "genotypes", addtot = TRUE, type = "line", thinData = TRUE,
 Simulations with HIGH mutation rate 1st there is a peak then the population settles and remains stable in 3 genotypes one kind of dominant and another two at lower ammounts - Is this low heterogeneity?
 
 You observe a stable population with one dominant genotype and two minor genotypes. This can be considered low ITH because the population is not evenly distributed among multiple genotypes. The dominance of one genotype reduces overall diversity. You can confirm this by calculating diversity indices (e.g., Shannon's entropy or Simpson's diversity index). A low value of Shannon's entropy would indicate low heterogeneity.
+Plotting the results:
+
+```{r}
+plot(out1, show = "genotypes", addtot = TRUE, type = "line", thinData = TRUE,
+     plotDiversity = TRUE, legend = FALSE)
+```
+
+**Interpretation:**
+
+The Diversity plot (the small plot on the top) represents Shannon's entropy, which indicates the diversity indices within the population by time. We will use this plot to interpret the results of the simulation with regards to intra-tumour heterogeneity. First we observe a peak in heterogeneity, then the population settles and we can see a stable population with one dominant genotype and two minor ones. <br> This can be considered low intra-tumour heterogeneity (ITH) because the population is not evenly distributed among multiple genotypes. The dominance of one genotype reduces overall diversity. In fact, in the Diversity plot we can observe the Shannon's entropy settles in a low value (less than 0.2) indicating low diversity indices and therefore low heterogeneity. 
 
 
 
