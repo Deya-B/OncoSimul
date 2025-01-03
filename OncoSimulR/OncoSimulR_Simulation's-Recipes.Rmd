@@ -67,8 +67,7 @@ Spatial and temporal heterogeneity: Spatial ITH: Different regions of the tumour
 
 Clinical implications of ITH: This heterogeneity has consequences for diagnosis, treatment and disease progression. High ITH: allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion, and poor prognosis. causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis. Low ITH: Often seen in tumours with dominant clones and more straightforward evolutionary trajectories
 
-Modeling ITH in OncoSimulR
-
+### Modeling ITH in OncoSimulR
 
 The following scenarios are using the McFL model, which is based on the McFarland model of tumor growth. 
 The most important characteristics of this model are the followings:
@@ -79,16 +78,17 @@ Carrying Capacity: There is an implicit assumption of limited resources, which c
 
 Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, thinking of advanced tumors, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
-Tunnelling:
+## Tunnelling:
 A very visual way to show what happens to our simulations when we stray away from the SSWM regime (and thus, our population is no longer monotypic) is the appearance of “prohibited” genotypes, understanding “prohibited” as those genotypes that are not possible according to our DAG.
 If we were, say, to model a scenario as: WT → A → B → C, then “B”, “C”, “A, C” and “B, C” would be prohibited genotypes. The only possible genotypes according to our DAG would be “WT”, “A”, “A, B” and “A, B, C”.
 If we run 1000 simulations under a SSWM regime, the chance of finding these genotypes in our population is very low; however, when we change the parameters and move away from SSWM, these prohibited genotypes appear almost always.
 Could this be due to the stochastic tunnelling effect?
 Stochastic tunnelling (STUN) is a phenomenon in which a step with low fitness is skipped. For example, in a scenario as “WT → A → B” where the fitness of A is lower than WT and the fitness of B is higher, a population of cancer cells could be able to tunnel from WT to B without ever reaching A. This description is paraphrased from Iwasa et al (2004).
 Under deterministic models and SSWM regimes, either tunnelling is not possible, or the order restrictions have been violated (as it appears to be the case). It can, however, happen under SSSM or WSSM regimes. Also, STUN is not a problem to consider under stochastic methods.
-## I’m not sure how to check what methods OncoSimul is using…
-## Maybe it uses all and makes a consensus, idk
-# DAG: WT -> A -> B -> C
+> I’m not sure how to check what methods OncoSimul is using…
+> Maybe it uses all and makes a consensus, idk
+> DAG: WT -> A -> B -> C
+
 my_DAG_3 <- allFitnessEffects(
   data.frame(parent = c("Root", "A"),
          	child = c("A", "B"),
