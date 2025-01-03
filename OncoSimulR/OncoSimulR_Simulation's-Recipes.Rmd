@@ -39,7 +39,7 @@ Fitness in the context of cancer evolution refers to the capacity of a genotype 
 
 Fitness effects determine how advantageous or disadvantageous mutations are. They are the core of OncoSimulR's simulations. It's important to make them simple but flexible, to be able to simulate many different situations. You define fitness values based on genotypes or specific mutations. Fitness landscapes can be additive (fitness is summed across mutations) or epistatic (interactions between mutations influence fitness),[@osr].
 
-\<--! “Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024]. --\>
+<!-- “Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024]. -->
 
 
 ## Strong/weak mutation and strong/weak selection
@@ -65,18 +65,49 @@ ITH can be observed also as **spatial and temporal heterogeneity**. **Spatial IT
 #### Clinical implications of ITH
 This heterogeneity has consequences for diagnosis, treatment and disease progression.
 
-**High ITH** allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion, and poor prognosis. causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis.
+**High ITH** allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion and poor prognosis. Furthermore, it causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis [@Morris2016].
+
 
 ### Modeling ITH in OncoSimulR
+The following scenarios are using the McFL model, which is based on the McFarland model of tumor growth. The most important characteristics of this model are the following:
+- Fitness-dependent Growth: Each genotype grows at a rate proportional to its fitness relative to the population's average fitness.
+- Competition: There is explicit competition among clones for shared resources or space.
+- Population Size Dynamics: The total population size is not fixed but fluctuates based on the relative fitness of clones.
+- Carrying Capacity: There is an implicit assumption of limited resources, which creates a competitive environment among clones.
 
-The following scenarios are using the McFL model, which is based on the McFarland model of tumor growth. 
-The most important characteristics of this model are the followings:
-Fitness-dependent Growth: Each genotype grows at a rate proportional to its fitness relative to the population's average fitness.
-Competition: There is explicit competition among clones for shared resources or space.
-Population Size Dynamics: The total population size is not fixed but fluctuates based on the relative fitness of clones.
-Carrying Capacity: There is an implicit assumption of limited resources, which creates a competitive environment among clones.
+Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
-Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, thinking of advanced tumors, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
+#### Scenario 1: Varying fitness
+Start from a random fitness landscapes with FEW GENOTYPES and low variations in fitness, fitness is almost NEUTRAL:
+
+```{r}
+library(OncoSimulR)
+set.seed(1)
+
+ab1 <- rfitness(3, scale = c(1.2, 0, 1)) # 3 genotypes
+feab1 <- allFitnessEffects(genotFitness = ab1)
+evalAllGenotypes(feab1)
+out1 <- oncoSimulIndiv(feab1,
+                       model = "McFL",
+                       onlyCancer = FALSE,
+                       finalTime = 2000,
+                       mu = 1e-3, # high mutation
+                       initSize = 1e4) # low initial size
+out1
+plot(out1, show = "genotypes", addtot = TRUE, type = "line", thinData = TRUE,
+     plotDiversity = TRUE, legend = FALSE)
+# Simulations with HIGH mutation rate
+# 1st there is a peak then the population settles and remains stable in 3 genotypes
+# one kind of dominant and another two at lower ammounts - Is this low heterogeneity?
+
+# You observe a stable population with one dominant genotype and two minor genotypes.
+# This can be considered low ITH because the population is not evenly distributed 
+# among multiple genotypes. The dominance of one genotype reduces overall diversity.
+# You can confirm this by calculating diversity indices (e.g., Shannon's entropy 
+# or Simpson's diversity index). A low value of Shannon's entropy would indicate 
+# low heterogeneity.
+```
+
 
 ## Tunnelling:
 A very visual way to show what happens to our simulations when we stray away from the SSWM regime (and thus, our population is no longer monotypic) is the appearance of “prohibited” genotypes, understanding “prohibited” as those genotypes that are not possible according to our DAG.
