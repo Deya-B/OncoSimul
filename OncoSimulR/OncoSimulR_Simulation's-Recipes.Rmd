@@ -1,0 +1,86 @@
+---
+title: "OncoSimulR_Simulation's-Recipes"
+author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerillo Sánchez, Rubén Rincón Álvarez"
+date: "9th January 2025"
+output: html_document
+bibliography: OncoSimulR-rmd.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# OncoSimulR
+
+Cancer can be defined as a group of diseases caused by the abnormal growth of cells in an organ or system, which can simultaneously affect other regions of the body. This process dramatically impacts vital equilibrium.
+
+From different fields, this phenomenon is being studied to be deciphered. For instance, mathematics and informatics are leveraged to understand the complex landscapes of cancer diseases and tumour evolution.
+
+In this context, a software tool called **OncoSimulR**, an R package, was developed. Based on stochastic models, it incorporates different kinds of mutations: passenger mutations (neutral in terms of fitness) and driver mutations (those that enhance tumour fitness).
+
+OncoSimulR is primarily used to simulate the behavior of asexual reproduction in cancer progression. It is a highly flexible tool, allowing users to account for and adjust various parameters. A diversity of evolutionary scenarios and features can be replicated, such as epistasis (gene-to-gene interaction), clonal competition, and different fitness models. For example:
+
+-   McFarland model: To study the balance between beneficial and deleterious mutations.
+-   Bozic model: Incorporating growth dynamics and mutation rates.
+
+Additionally, OncoSimulR supports scalable simulations with functions like OncoSimulIndiv and OncoSimulPop, which can simulate either an individual tumour or a population of tumours.
+
+It is also possible to use the mclapply function, enabling parallel simulations, making this tool highly efficient for large-scale studies.
+
+It is important to note that to obtain different simulations with the software, the fitness or evolutionary fitness parameter is used.
+
+## Fitness
+
+In cancer biology, fitness represents the ability of a cell (or genotype) to survive, proliferate, and pass on its genetic material. Higher fitness means a genotype is more likely to dominate the population.
+
+### Fitness in OncoSimulR:
+
+Fitness in the context of cancer evolution refers to the capacity of a genotype to outcompete others in the tumour microenvironment[@osr]. It encapsulates: - Proliferation rate: Faster-dividing cells have a higher fitness. - Survival: Cells that resist apoptosis or evade immune detection are fitter. - Adaptation: Cells that adapt to hypoxia or therapy have selective advantages.
+
+Fitness effects determine how advantageous or disadvantageous mutations are. They are the core of OncoSimulR's simulations. It's important to make them simple but flexible, to be able to simulate many different situations. You define fitness values based on genotypes or specific mutations. Fitness landscapes can be additive (fitness is summed across mutations) or epistatic (interactions between mutations influence fitness),[@osr].
+
+“Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024].
+
+## Strong/weak mutation and strong/weak selection
+
+Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous or weak mutation where the mutation rate is low.
+
+In OncoSimulR you can adjust functions, in specific, mu to be equal to a concrete mutation rate, 1e-6 would be a weak one and 1e-4 would be a strong one.
+
+Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately whereas in a weak selection regime the differences between different fitness are negligible or not large.
+
+In OncoSimulR you can adjust functions to simulate these conditions, in particular, with fitness effect with values 0.1 to strong selection and 0.01 to weak selection.
+
+## Intra-tumour Heterogeneity (ITH)
+
+*"Cancer is the result of a gradual accumulation of somatic genetic mutations. While most of the acquired mutations are putatively neutral and have no significant effect on a cell’s phenotype, some confer a selective advantage to the host cell; they are known as driver mutations. Consequently, individual tumours are heterogeneous and typically consist of multiple populations of cells (subclones), each harboring a distinct set of driver mutations and possessing a distinct phenotype, a phenomenon known as intra-tumour heterogeneity (ITH). Detecting ITH helps identify the key events initiating the development of the disease or leading to metastasis, and allows for the determination of a tumour’s subclonal composition."* [@k2019]
+
+In other words, **intra-tumour heterogeneity** refers to the coexistence of genetically, epigenetically, and phenotypically diverse cell populations within a single tumour. This diversity arises due to ongoing mutation, epigenetic changes, and microenvironmental selection pressures during tumour development.
+
+### Characteristics
+
+1.  Diverse origins:
+    -   ITH encompasses all forms of variation within a tumour, including: genetic mutations, copy number alterations, epigenetic modifications, and differential gene expression.
+    -   It is driven by both neutral processes (e.g., random mutations) and selective pressures (e.g., competition for nutrients, immune evasion).
+
+Spatial and temporal heterogeneity: Spatial ITH: Different regions of the tumour may harbor distinct clones due to localized selection pressures. Temporal ITH: The tumour’s clonal composition changes over time as new mutations accumulate and selective pressures shift.
+
+Clinical implications of ITH: This heterogeneity has consequences for diagnosis, treatment and disease progression. High ITH: allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion, and poor prognosis. causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis. Low ITH: Often seen in tumours with dominant clones and more straightforward evolutionary trajectories
+
+Modeling ITH in OncoSimulR
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# References
