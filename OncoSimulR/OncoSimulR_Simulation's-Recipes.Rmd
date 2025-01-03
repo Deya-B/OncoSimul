@@ -31,15 +31,16 @@ It is important to note that to obtain different simulations with the software, 
 
 ## Fitness
 
-In cancer biology, fitness represents the ability of a cell (or genotype) to survive, proliferate, and pass on its genetic material. Higher fitness means a genotype is more likely to dominate the population.
+In cancer biology, fitness represents the ability of a cell (or genotype) to survive, proliferate, and pass on its genetic material. Higher fitness means a genotype is more likely to dominate the population[@Nowell1976].
 
 ### Fitness in OncoSimulR:
 
-Fitness in the context of cancer evolution refers to the capacity of a genotype to outcompete others in the tumour microenvironment[@osr]. It encapsulates: - Proliferation rate: Faster-dividing cells have a higher fitness. - Survival: Cells that resist apoptosis or evade immune detection are fitter. - Adaptation: Cells that adapt to hypoxia or therapy have selective advantages.
+Fitness in the context of cancer evolution refers to the capacity of a genotype to outcompete others in the tumour microenvironment. It encapsulates **proliferation rate**, where faster-dividing cells have a higher fitness; **survival**, where cells that resist apoptosis or evade immune detection are fitter; and **adaptation**, which refers to the ability of cells to adapt to hypoxia or therapy, these will present with selective advantages[@osr].
 
 Fitness effects determine how advantageous or disadvantageous mutations are. They are the core of OncoSimulR's simulations. It's important to make them simple but flexible, to be able to simulate many different situations. You define fitness values based on genotypes or specific mutations. Fitness landscapes can be additive (fitness is summed across mutations) or epistatic (interactions between mutations influence fitness),[@osr].
 
-“Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024].
+\<--! “Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024]. --\>
+
 
 ## Strong/weak mutation and strong/weak selection
 
@@ -53,19 +54,18 @@ In OncoSimulR you can adjust functions to simulate these conditions, in particul
 
 ## Intra-tumour Heterogeneity (ITH)
 
-*"Cancer is the result of a gradual accumulation of somatic genetic mutations. While most of the acquired mutations are putatively neutral and have no significant effect on a cell’s phenotype, some confer a selective advantage to the host cell; they are known as driver mutations. Consequently, individual tumours are heterogeneous and typically consist of multiple populations of cells (subclones), each harboring a distinct set of driver mutations and possessing a distinct phenotype, a phenomenon known as intra-tumour heterogeneity (ITH). Detecting ITH helps identify the key events initiating the development of the disease or leading to metastasis, and allows for the determination of a tumour’s subclonal composition."* [@k2019]
-
-In other words, **intra-tumour heterogeneity** refers to the coexistence of genetically, epigenetically, and phenotypically diverse cell populations within a single tumour. This diversity arises due to ongoing mutation, epigenetic changes, and microenvironmental selection pressures during tumour development.
+*"Cancer is the result of a gradual accumulation of somatic genetic mutations. While most of the acquired mutations are putatively neutral and have no significant effect on a cell’s phenotype, some confer a selective advantage to the host cell; they are known as driver mutations. Consequently, individual tumours are heterogeneous and typically consist of multiple populations of cells (subclones), each harboring a distinct set of driver mutations and possessing a distinct phenotype, a phenomenon known as intra-tumour heterogeneity (ITH). Detecting ITH helps identify the key events initiating the development of the disease or leading to metastasis, and allows for the determination of a tumour’s subclonal composition."* [@k2019].
 
 ### Characteristics
+#### Diverse origins and types
+**Intra-tumour heterogeneity** (ITH) refers to the coexistence of genetically, epigenetically, and phenotypically diverse cell populations within a single tumour. Ecompassing all forms of variation within a tumour (including genetic mutations, copy number alterations, epigenetic modifications and differential gene expression). This diversity arises due both neutral processes, such as random mutations, and selective pressures, where microenvironmental selection pressures during tumour development such as competition for nutrients and immune evasion play a big role [@ith2017; @ith2018].
 
-1.  Diverse origins:
-    -   ITH encompasses all forms of variation within a tumour, including: genetic mutations, copy number alterations, epigenetic modifications, and differential gene expression.
-    -   It is driven by both neutral processes (e.g., random mutations) and selective pressures (e.g., competition for nutrients, immune evasion).
+ITH can be observed also as **spatial and temporal heterogeneity**. **Spatial ITH** refers to a situation where different regions of the tumour harbor distinct clones due to localized selection pressures. On the other hand, **temporal ITH** refers to a scenario where the tumour’s clonal composition changes over time as new mutations accumulate and selective pressures shift [@ith2012; @ithNR2018].
 
-Spatial and temporal heterogeneity: Spatial ITH: Different regions of the tumour may harbor distinct clones due to localized selection pressures. Temporal ITH: The tumour’s clonal composition changes over time as new mutations accumulate and selective pressures shift.
+#### Clinical implications of ITH
+This heterogeneity has consequences for diagnosis, treatment and disease progression.
 
-Clinical implications of ITH: This heterogeneity has consequences for diagnosis, treatment and disease progression. High ITH: allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion, and poor prognosis. causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis. Low ITH: Often seen in tumours with dominant clones and more straightforward evolutionary trajectories
+**High ITH** allows tumours to adapt to changing environments, such as therapy or immune response, therefore it is associated with treatment resistance, immune evasion, and poor prognosis. causes diverse subpopulations to cooperate or compete, influencing tumour growth and metastasis.
 
 ### Modeling ITH in OncoSimulR
 
