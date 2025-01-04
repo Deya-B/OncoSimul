@@ -1,5 +1,5 @@
 ---
-title: "OncoSimulR_Simulation's-Recipes"
+title: "A recipe book for Simulations with OncoSimulR"
 author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerillo Sánchez, Rubén Rincón Álvarez"
 date: "9th January 2025"
 output: html_document
@@ -7,7 +7,7 @@ bibliography: OncoSimulR-rmd.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, error = TRUE, silent = TRUE)
 ```
 
 # OncoSimulR
@@ -31,7 +31,7 @@ It is important to note that to obtain different simulations with the software, 
 
 ## Fitness
 
-In cancer biology, fitness represents the ability of a cell (or genotype) to survive, proliferate, and pass on its genetic material. Higher fitness means a genotype is more likely to dominate the population[@Nowell1976].
+In cancer biology, fitness represents the ability of a cell (or genotype) to survive, proliferate, and pass on its genetic material. Higher fitness means a genotype is more likely to dominate the population[@Derbal2023].
 
 ### Fitness in OncoSimulR:
 
@@ -77,12 +77,19 @@ The following scenarios are using the McFL model, which is based on the McFarlan
 
 Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
-#### Scenario 1: Low ITH
+#### Modeling variations in fitness:
+
+------------------------------------------------------------------------
+
+#### Scenario 1: Low fitness variations
 
 Starting from a random fitness landscape with few genotypes (3 genotypes) and low variations in fitness (therefore, fitness is almost neutral):
 
-```{r}
+```{r OncoSimulR, echo=FALSE}
 library(OncoSimulR)
+```
+
+```{r}
 set.seed(1)
 
 ab1 <- rfitness(3, scale = c(1.1, 0, 1))
@@ -97,6 +104,8 @@ Simulating tumor progression with `oncoSimulIndiv` on the created `allFitnessEff
 -   initial size (`initSize`): set at an intermediate amount, and
 -   `finalTime`: set long enough (500) to see how the population stabilizes
 
+Therefore, we are creating a scenario of **weak selection strong mutation (WSSM)**.
+
 ```{r}
 out1 <- oncoSimulIndiv(feab1,
                        model = "McFL",
@@ -106,27 +115,29 @@ out1 <- oncoSimulIndiv(feab1,
                        initSize = 1e5)
 ```
 
-Plotting the results:
-
-```{r}
-plot(out1, show = "genotypes", addtot = TRUE, type = "line", thinData = TRUE,
-     plotDiversity = TRUE, legend = FALSE)
-```
-
 **Interpretation:**
 
-We can see that the final population composition consists of:
+We can see the final population composition by running `out1`:
 
 ```{r out1, echo=FALSE}
 out1
 ```
-One dominant genotype (C) and other three stablished genotypes but with lower populations.
 
-The Diversity plot (the small plot on the top) represents **Shannon's entropy**, which indicates the diversity indices within the population by time. We will use this plot to interpret the results of the simulations with regards to intra-tumour heterogeneity.<br> 
-First we observe a peak in heterogeneity, then the population settles and we can see a stable population with one dominant genotype and three minor ones. <br> This can be considered **low intra-tumour heterogeneity** (ITH) because the population is not evenly distributed among multiple genotypes and the dominance of one genotype reduces overall diversity. In fact, in the Diversity plot we can observe the Shannon's entropy settles in a low value (around 0.2) indicating low diversity indices.
+The population consists of one dominant genotype (C) and another three stablished genotypes but with lower populations.
+
+By plotting the results we can obtain more information:
+
+```{r}
+plot(out1, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
+     thinData = TRUE, type = "line", legend.ncols = 4, ylim = c(1,1e8))
+```
+
+The Diversity plot (the small plot on the top) represents **Shannon's entropy**, which indicates the diversity indices within the population by time. We will use this plot to interpret the results of the simulations with regards to intra-tumour heterogeneity. 
+
+First we observe a peak in heterogeneity, then the population settles and we can see a stable population with one dominant genotype and three minor ones. This can be considered **low intra-tumour heterogeneity** (ITH) because the population is not evenly distributed among multiple genotypes and the dominance of one genotype reduces overall diversity. In fact, in the Diversity plot we can observe the Shannon's entropy settles in a low value (around 0.2) indicating low diversity indices.
 
 
-#### Scenario 2:
+#### Scenario 2: Low fitness variations
 
 This is the same scenario as before, but with 4 genotypes and very high mutation rates:
 
@@ -144,18 +155,66 @@ out7 <- oncoSimulIndiv(feab7,
                        initSize = 1e5)
 ```
 
-Results:
+**Interpretation:**
 
 ```{r}
 out7
-plot(out7, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
-     type = "line", legend = FALSE)
 ```
 
-**Interpretation:**
+This is a scenario of **weak selection strong mutation (WSSM)** that yields a high number of coexisting genotypes and high diversity (\~2.0). 
 
-This is a scenario of **weak selection strong mutation (WSSM)** that yields a high number of coexisting genotypes and high diversity (~2.0). <br>
-First we observe the usual peak in populations, however this time most of the populations settle at a similar number. This means that multiple genotypes are in coexistance which indicates **high ITH**.
+First we observe the usual peak in populations, however this time most of the populations settle at a similar number. This means that multiple genotypes are in coexistence which indicates **high ITH**.
+
+```{r}
+plot(out7, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
+     type = "line", thinData = TRUE, legend.ncols = 4, 
+     ylim = c(1,1e10))
+```
+
+#### Scenario 3: High fitness variations
+
+With high fitness variations between genotypes we cannot get coexistence and therefore is not possible to reach intra-tumour heterogeneity (ITH).
+
+It happens as it should, high fitness differences between all the genotypes results in a **monotypic population** (where most of the time there is a single genotype) and this is incompatible with ITH. This occurs because high fitness differences causes that the fitter one overrides the others... To cause ITH then we should try to move towards a **non-monotypic population**.
+
+To do this, at least two genotypes must have similar high fitness. Therefore, we need a number of genotypes and some of them with similarly high fitness.
+
+```{r}
+set.seed(180)
+ab3 <- rfitness(4, scale = c(10, 5, 1))
+feab3 <- allFitnessEffects(genotFitness = ab3)
+evalAllGenotypes(feab3)
+out3 <- oncoSimulIndiv(feab3,
+                       model = "McFL", 
+                       onlyCancer = FALSE,
+                       finalTime = 50,
+                       mu = 1e-2, 
+                       initSize = 1e2)
+```
+
+We can see that the fitness at birth of A and B and A,C are rather high.
+
+```{r}
+out3
+```
+
+In fact, we can see that A yields the largest population; followed by A,C; and then A,D and A,B.
+
+```{r}
+plot(out3, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
+     type = "line", legend.ncols = 4, ylim = c(1,1e12))
+```
+
+These results show a low to moderate sustained diversity (\~0.5).
+
+#### Aiming high ITH
+
+------------------------------------------------------------------------
+
+#### Scenario 1
+
+
+
 
 
 ## Tunnelling:
