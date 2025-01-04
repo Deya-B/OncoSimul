@@ -213,6 +213,41 @@ These results show a low to moderate sustained diversity (\~0.5).
 
 #### Scenario 1
 
+```{r}
+
+ab10 <- data.frame(Genotype = c("WT", "A", "B", "C", "D", "A,B", "C,D"),
+                   Fitness = c("1",
+                               "1 + 1.8*(f_1 + f_2 + f_1_2)",
+                               "1 + 1.9*(f_1 + f_2 + f_1_2)", 
+                               "1 + 2.1*(f_1 + f_2 + f_1_2)",
+                               "1 + 2*(f_1 + f_2 + f_1_2)",
+                               "1.2 + 1.3 *(f_1 + f_2 + f_1_2)",
+                               "1.2 + 1.3 *(f_1 + f_2 + f_1_2)"))
+feab10 <- allFitnessEffects(genotFitness = ab10,
+                            frequencyDependentFitness = TRUE,
+                            frequencyType = "rel")
+
+set.seed(2)
+out10 <- oncoSimulIndiv(feab10,
+                       model = "McFL",
+                       onlyCancer = FALSE,
+                       finalTime = 300,
+                       mu = 1e-3, 
+                       initSize = 1e4,
+                       keepPhylog = TRUE,
+                       errorHitWallTime = FALSE,
+                       errorHitMaxTries = FALSE)
+out10
+```
+
+This represents high sustained ITH (over 1.0). As we have mentioned before, is important that the fitness of the genotypes are similar. We can observe that those with a lower fitness end up in complete decline.
+
+```{r}
+plot(out10, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
+     type = "line", legend.ncols = 4, ylim = c(1,1e8))
+```
+
+
 
 
 
