@@ -301,7 +301,7 @@ This model creates high and dynamic ITH due to the combination of mutator effect
 
 
 
-## Tunnelling (& Valley Crossing):
+## Tunnelling (& Valley Crossing)
 A very visual way to show what happens to our simulations when we stray away from the SSWM regime (and thus, our population is no longer monotypic) is the frequent appearance of genotypes incompatible with our DAG.
 
 If we were to model a scenario as: WT → A → B → C, then “B”, “C”, “A, C” and “B, C” would be incompatible genotypes. The only possible genotypes according to our DAG would be “WT”, “A”, “A, B” and “A, B, C”. If we run 1000 simulations under a SSWM regime, the chance of finding these genotypes in our population is very low; however, when we change the parameters and move away from SSWM, these incompatible genotypes appear almost always.
@@ -309,19 +309,42 @@ If we were to model a scenario as: WT → A → B → C, then “B”, “C”, 
 You may (or not, who knows) be wondering “why does this happen?” Well, this occurrence might be due, in part, to valley crossing.
 A valley is the depression between two elevated terrains; so, in our fitness landscape, it refers to a deleterious genotype situated between two beneficial genotypes. Sometimes, reaching the most beneficial genotype requires going through a deleterious one; this is known as valley crossing. Now, two asexual populations may have different approaches to cross the valley depending on various parameters such as population size, mutation rate and fitness of compatible and incompatible genotypes. So, as could be expected, valley crossing will differ from a monotypic population to a non-monotypic one.
 
-In monotypic populations, under the SSWM regime, we typically have small populations and a reasonable difference of fitness between genotypes, which makes the population much more susceptible to drift. So, the most common case of valley crossing in these scenarios is sequential fixation, which means that all genotypes in the line of descent (LOD) are fixated (sometimes by genetic drift) one after another until the population reaches the fitness summit. For not monotypic populations, as the population sizes are usually much larger, combined with different mutation rates and fitness effects, stochastic tunneling (STUN) is more usual in these particular cases (Weissman et al., 2009). https://www.sciencedirect.com/science/article/pii/S0040580909000264?via%3Dihub
+In monotypic populations, under the SSWM regime, we typically have small populations and a reasonable difference of fitness between genotypes, which makes the population much more susceptible to drift. So, the most common case of valley crossing in these scenarios is sequential fixation, which means that all genotypes in the line of descent (LOD) are fixated (sometimes by genetic drift) one after another until the population reaches the fitness summit. For not monotypic populations, as the population sizes are usually much larger, combined with different mutation rates and fitness effects, stochastic tunneling (STUN) is more usual in these particular cases [@Weissman2009].
 
-STUN is the phenomenon in which intermediate genotypes drift at relatively low frequencies, each such intermediate eventually disappearing, until an individual accumulates a combination of mutations that provides a selective advantage. Essentially, it means that a population goes from state 0 to state 2 without ever reaching (fixating, actually) state 1 (Iwasa et al., 2004). https://academic.oup.com/genetics/article/166/3/1571/6050386
-Alright, how do we model STUN with OncoSimulR?
+STUN is the phenomenon in which intermediate genotypes drift at relatively low frequencies, each such intermediate eventually disappearing, until an individual accumulates a combination of mutations that provides a selective advantage. Essentially, it means that a population goes from state 0 to state 2 without ever reaching (fixating, actually) state 1 [@Iwasa2004].
 
-According to Iwassa et al (2004), the easiest way is to have a DAG as 0 → 1 → 2 and fitness effects as fe0 = 1, fe1 =< 1, fe2 > 1 (~10); also, the mutation rate for 1 has to be lower that 2 (mu1 = 1e-5, mu2 = 1e-2). However, if we create a DAG like “WT → A → B”, our stage 2 is actually going to be “A, B”, not “B”. In OncoSimul, we can change the fitness effect of “A, B”, but we were not able to change its mutation rate because “A, B” is not a gene in the DAG (it is a genotype, not a gene). So, we won’t keep a difference in mutation rates for “A” and “B”. The key factor according to this paper is that the population size must remain constant, this can be achieved in OncoSimul by setting the model variable to “Cont”.
+# STUN Parameters in the Literatue
+According to [@Iwasa2004], the easiest way is to have a DAG as 0 → 1 → 2 and fitness effects as fe0 = 1, fe1 =< 1, fe2 > 1 (~10); also, the mutation rate for 1 has to be lower that 2 (mu1 = 1e-5, mu2 = 1e-2). However, if we create a DAG like “WT → A → B”, our stage 2 is actually going to be “A, B”, not “B”. In OncoSimul, we can change the fitness effect of “A, B”, but we were not able to change its mutation rate because “A, B” is not a gene in the DAG (it is a genotype, not a gene). So, we won’t keep a difference in mutation rates for “A” and “B”. The key factor according to this paper is that the population size must remain constant, this can be achieved in OncoSimul by setting the model variable to “Cont”.
 
-For this very same DAG (with 2 genes), Weissman et al (2009) provide more useful indications, such as how the population size and the selective disadvantage (parameter sh in OncoSimul) for intermediate single-mutants (“A” and “B”) will affect the type of valley crossing that the cell population experiences. What we should take home from this paper is to keep the population above 1/muA and the sh variable close to 0. Again, this paper specifies that mu2 is the mutation rate from the single-mutant to the double-mutant. We are not sure if that is possible in OncoSimul, but haven’t found out how. So, it is quite possible that these models are somewhat different to those of the papers.
+For this very same DAG (with 2 genes), [@Weissman2009] provide more useful indications, such as how the population size and the selective disadvantage (parameter sh in OncoSimul) for intermediate single-mutants (“A” and “B”) will affect the type of valley crossing that the cell population experiences. What we should take home from this paper is to keep the population above 1/muA and the sh variable close to 0. Again, this paper specifies that mu2 is the mutation rate from the single-mutant to the double-mutant. We are not sure if that is possible in OncoSimul, but haven’t found out how. So, it is quite possible that these models are somewhat different to those of the papers.
 
-For the code in R, we do as follows:
-First, we create the DAG.
+# Modeling STUN with OncoSimulR
+First, we need to call some packages, as well as setting the number of cores for our parallelized functions depending on which OS we're using.
+
 ```{r}
-# DAG: WT -> A -> B -> C
+#/ label: tunneling-packages-cores
+#/ message: false
+
+library(OncoSimulR)
+library(graph)
+library(igraph)
+library(parallel)
+igraph_options(vertex.color = "SkyBlue2")
+
+if(.Platform$OS.type == "windows") {
+  mc.cores <- 1
+} else {
+  mc.cores <- 2
+}
+```
+
+Then, we need to create the DAG. For this, we will use the allFitnessEffects function with a data.frame that contains the parental relationships of our genotypes. The variable "s" is the fitness for the genotypes that do not violate the order retrictions, 15.667 is a number tailored to make "A, B"'s fitness roughly equal to 10 (as suggested in the literature. The "sh" variable is the fitness penalty for the genotypes that do not follow the DAG, again inspired by the literature. The type of dependancy is set to "MN" (or "AND"), but does not really matter in this case.
+
+```{r}
+#/ label: tunneling-DAG
+#/ message: false
+
+# DAG: WT -> A -> B
 my_DAG <- allFitnessEffects(
   data.frame(parent = c("Root", "A"),
          	child = c("A", "B"),
@@ -329,28 +352,59 @@ my_DAG <- allFitnessEffects(
          	sh = -0.004,
          	typeDep = "MN"),
   drvNames = c("A", "B"))
-plot(my_DAG) #Direct Acyclic Graph
-(ev <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE))
-plot(ev, use_ggrepel = TRUE) #Fitness Landscape
 ```
 
-And now we simulate the scenarios
-(If we needed more simulations, this could be parallelized)
+Now, we can show different plots for our DAG and our Fintess Landsacpe, as well as a table with the fitness values for all posible combination of genes.
+
 ```{r}
+#/ label: DAG-plots
+#/ message: false
+plot(my_DAG) #Direct Acyclic Graph
+plot(ev, use_ggrepel = TRUE) #Fitness Landscape
+(ev <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
+```
+
+We can now run 1 or many simulations using the mclapply() function in this example, we will run only 10 so that it goes fast,as we won't be going alogn all of them.
+It is fundamental that the model is set to "Const", so that the population size remains constant. The time our simulations will be running can be low, as tunneling will occur pretty fast. The size of our population must be enough to get out of the SSWM regime and the mutation rate about the same. the variable keepPhylog allow us to onserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
+
+```{r}
+#/ label: tunneling-sim
+#/ message: false
+
 # Not Monotypic Population
+set.seed(6) #For reproducibility
 not_mono_pop <- mclapply(1:10, function(x) oncoSimulIndiv(my_DAG, model = "Const",
                                                           	mu = 1e-4,
                                                           	onlyCancer = FALSE,
                                                           	finalTime = 50,
                                                           	keepPhylog = TRUE,
                                                           	keepEvery = TRUE,
-                                                          	initSize = 1e5), #high pop.
+                                                            initSize = 1e5), #high pop.
+                mc.cores = mc.cores)
 ```
-We can check the specifics or our population with these:
+
+We can see how our population evolves with the following tables and graphs.
+The table shows the number of cells of each genotype. The columns are (from left to right): Time, "WT", "A", "A, B" and "B".
+The plot shows the emergence and disappearance of different genotypes as lines, so all can be seen clearly.
+
 ```{r}
-(not_mono_pop[[i]]$pops.by.time) #Population size of each gebotype by time.
-plot(not_mono_pop, show = "genotypes", type = "line") #Grwoth lines for our genotypes.
+#/ label: tunneling-plots
+#/ message: false
+
+(not_mono_pop[[1]]$pops.by.time) #Population size of each gebotype by time.
+plot(not_mono_pop[[1]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
 ```
+
 As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates as soon as “A” or “B” appear. Thus, we have STUN.
+Stochastic Tunneling is just one way of crossing fitness valleys and there exist some variations of STUN depending on the parameters of our simulations.
+We won't enter in more detail as we would run out of time. For more details on STUN, please check [@Iwasa2004] and [@Weissman2009]. 
   
 ## References
+
+## Session Info
+```{r}
+#/ label: sessionInfo
+#/ message: false
+#/ echo: false
+sessionInfo()
+```
