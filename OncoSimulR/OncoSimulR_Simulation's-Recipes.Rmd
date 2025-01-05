@@ -360,8 +360,9 @@ Now, we can show different plots for our DAG and our Fintess Landsacpe, as well 
 #/ label: DAG-plots
 #/ message: false
 plot(my_DAG) #Direct Acyclic Graph
-plot(ev, use_ggrepel = TRUE) #Fitness Landscape
-(ev <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
+(evag <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
+plot(evag, use_ggrepel = TRUE) #Fitness Landscape
+
 ```
 
 We can now run 1 or many simulations using the mclapply() function in this example, we will run only 10 so that it goes fast,as we won't be going alogn all of them.
@@ -391,11 +392,11 @@ The plot shows the emergence and disappearance of different genotypes as lines, 
 #/ label: tunneling-plots
 #/ message: false
 
-(not_mono_pop[[1]]$pops.by.time) #Population size of each gebotype by time.
-plot(not_mono_pop[[1]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
+head(not_mono_pop[[2]]$pops.by.time) #Population size of each gebotype by time.
+plot(not_mono_pop[[2]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
 ```
 
-As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates as soon as “A” or “B” appear. Thus, we have STUN.
+As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear (with mu = 1e-3 it would be almost intant). Thus, we have STUN.
 Stochastic Tunneling is just one way of crossing fitness valleys and there exist some variations of STUN depending on the parameters of our simulations.
 We won't enter in more detail as we would run out of time. For more details on STUN, please check [@Iwasa2004] and [@Weissman2009]. 
   
