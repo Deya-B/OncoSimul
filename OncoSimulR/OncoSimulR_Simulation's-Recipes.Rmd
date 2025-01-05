@@ -321,10 +321,7 @@ For this very same DAG (with 2 genes), [@Weissman2009] provide more useful indic
 # Modeling STUN with OncoSimulR
 First, we need to call some packages, as well as setting the number of cores for our parallelized functions depending on which OS we're using.
 
-```{r}
-#/ label: tunneling-packages-cores
-#/ message: false
-
+```{r pakages-cores, message=FALSE, warning=FALSE}
 library(OncoSimulR)
 library(graph)
 library(igraph)
@@ -340,10 +337,7 @@ if(.Platform$OS.type == "windows") {
 
 Then, we need to create the DAG. For this, we will use the allFitnessEffects function with a data.frame that contains the parental relationships of our genotypes. The variable "s" is the fitness for the genotypes that do not violate the order retrictions, 15.667 is a number tailored to make "A, B"'s fitness roughly equal to 10 (as suggested in the literature. The "sh" variable is the fitness penalty for the genotypes that do not follow the DAG, again inspired by the literature. The type of dependancy is set to "MN" (or "AND"), but does not really matter in this case.
 
-```{r}
-#/ label: tunneling-DAG
-#/ message: false
-
+```{r tunneling-DAG}
 # DAG: WT -> A -> B
 my_DAG <- allFitnessEffects(
   data.frame(parent = c("Root", "A"),
@@ -356,22 +350,16 @@ my_DAG <- allFitnessEffects(
 
 Now, we can show different plots for our DAG and our Fintess Landsacpe, as well as a table with the fitness values for all posible combination of genes.
 
-```{r}
-#/ label: DAG-plots
-#/ message: false
+```{r DAG-plots}
 plot(my_DAG) #Direct Acyclic Graph
 (evag <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
 plot(evag, use_ggrepel = TRUE) #Fitness Landscape
-
 ```
 
 We can now run 1 or many simulations using the mclapply() function in this example, we will run only 10 so that it goes fast,as we won't be going alogn all of them.
 It is fundamental that the model is set to "Const", so that the population size remains constant. The time our simulations will be running can be low, as tunneling will occur pretty fast. The size of our population must be enough to get out of the SSWM regime and the mutation rate about the same. the variable keepPhylog allow us to onserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
 
-```{r}
-#/ label: tunneling-sim
-#/ message: false
-
+```{r tunneling-sim}
 # Not Monotypic Population
 set.seed(6) #For reproducibility
 not_mono_pop <- mclapply(1:10, function(x) oncoSimulIndiv(my_DAG, model = "Const",
@@ -388,10 +376,7 @@ We can see how our population evolves with the following tables and graphs.
 The table shows the number of cells of each genotype. The columns are (from left to right): Time, "WT", "A", "A, B" and "B".
 The plot shows the emergence and disappearance of different genotypes as lines, so all can be seen clearly.
 
-```{r}
-#/ label: tunneling-plots
-#/ message: false
-
+```{r tunneling-plots}
 head(not_mono_pop[[2]]$pops.by.time) #Population size of each gebotype by time.
 plot(not_mono_pop[[2]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
 ```
@@ -403,9 +388,6 @@ We won't enter in more detail as we would run out of time. For more details on S
 ## References
 
 ## Session Info
-```{r}
-#/ label: sessionInfo
-#/ message: false
-#/ echo: false
+```{r sessionInfo}
 sessionInfo()
 ```
