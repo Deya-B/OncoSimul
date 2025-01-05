@@ -77,6 +77,8 @@ The following scenarios are using the McFL model, which is based on the McFarlan
 
 Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
+------------------------------------------------------------------------
+
 #### Modeling variations in fitness:
 
 ------------------------------------------------------------------------
@@ -207,47 +209,95 @@ plot(out3, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
 
 These results show a low to moderate sustained diversity (\~0.5).
 
+------------------------------------------------------------------------
+
 #### Aiming high ITH
 
 ------------------------------------------------------------------------
 
 #### Scenario 1
+#### Scenario 1
+
+In this scenario a very weak selection and many different interfering genes allow for mutations to thrive and coexist.
 
 ```{r}
+set.seed(149)
+genes1 <- rfitness(6, scale = c(1, 1.02))
 
-ab10 <- data.frame(Genotype = c("WT", "A", "B", "C", "D", "A,B", "C,D"),
-                   Fitness = c("1",
-                               "1 + 1.8*(f_1 + f_2 + f_1_2)",
-                               "1 + 1.9*(f_1 + f_2 + f_1_2)", 
-                               "1 + 2.1*(f_1 + f_2 + f_1_2)",
-                               "1 + 2*(f_1 + f_2 + f_1_2)",
-                               "1.2 + 1.3 *(f_1 + f_2 + f_1_2)",
-                               "1.2 + 1.3 *(f_1 + f_2 + f_1_2)"))
-feab10 <- allFitnessEffects(genotFitness = ab10,
-                            frequencyDependentFitness = TRUE,
-                            frequencyType = "rel")
+drivergenes <- which(genes1 > 0)
+fx1 <- allFitnessEffects(genotFitness = genes1)
 
-set.seed(2)
-out10 <- oncoSimulIndiv(feab10,
+evalAllGenotypes(fx1)
+
+sim1 <- oncoSimulIndiv(fx1,
                        model = "McFL",
                        onlyCancer = FALSE,
-                       finalTime = 300,
+                       finalTime = 2000,
                        mu = 1e-3, 
-                       initSize = 1e4,
-                       keepPhylog = TRUE,
-                       errorHitWallTime = FALSE,
-                       errorHitMaxTries = FALSE)
-out10
+                       initSize = 1e4)
 ```
 
-This represents high sustained ITH (over 1.0). As we have mentioned before, is important that the fitness of the genotypes are similar. We can observe that those with a lower fitness end up in complete decline.
+This represents high sustained ITH. We can observe in the diversity plot constant rates over 2.0, and reaching 3.0 at some points.
 
 ```{r}
-plot(out10, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
-     type = "line", legend.ncols = 4, ylim = c(1,1e8))
+plot(sim1, show = "genotypes", addtot = TRUE, 
+     plotDiversity = TRUE, thinData = TRUE, legend = FALSE)
 ```
 
+#### Scenario 2: High ITH with many clones
+In this scenario, genomic instability causes multiple mutations to accumulate, starting from one mutator phenotype with strong selection and leading to many subclones each with unique mutations that allow them all to coexist.
 
+First creating 9 genes with no interaction and another 9 with ranging low interaction:
+
+```{r}
+set.seed(1)
+
+genes <- c(rep(0, 9), runif(9, -0.01, 0.1)) 
+names(genes) <- c("a1", "a2", "a3", "b1", "b2", "c1", "c2", "c3", "c4",
+                  paste0("h", 1:9))
+
+hgenes <- which(genes > 0) # separate genes with positive fitness effects
+```
+
+`drvNames` marks the genes with positive fitness effects (`hgenes`) as driver genes (for later specification during plotting):
+                      
+```{r}
+fx <- allFitnessEffects(noIntGenes = genes,
+                        drvNames = names(genes)[hgenes])
+```
+
+Then defining `allMutatorEffects` will influence mutation rates:
+
+```{r}
+mx <- allMutatorEffects(epistasis = c("A" = 3,
+                                      "B" = 5,
+                                      "C" = 15,
+                                      "A:B" = 50),
+                        geneToModule = c("A" = "a1, a2, a3",
+                                         "B" =  "b1, b2",
+                                         "C" = "c1, c2, c3, c4")) 
+set.seed(2)
+sim_ith <- oncoSimulIndiv(fx, muEF = mx,
+                          mu = 1e-6, # baseline mutation rate
+                          initSize = 1e6,
+                          model = "McFL",
+                          onlyCancer = FALSE,
+                          finalTime = 1100,
+                          keepPhylog = TRUE, # keep the genealogy of the clones
+                          detectionSize = NA,
+                          detectionProb = NA,
+                          detectionDrivers = NA,
+                          errorHitWallTime = FALSE,
+                          errorHitMaxTries = FALSE,
+                          seed = NULL)
+```
+
+```{r}
+plot(sim_ith, plotDrivers = TRUE, addtot = TRUE, plotDiversity = TRUE,
+     thinData = TRUE, legend.ncols = 5, ylim = c(1,1e9))
+```
+
+This model creates high and dynamic ITH due to the combination of mutator effects and random fitness effects, this simulation generates high genetic diversity. The presence of mutators (mx) accelerates the generation of new genotypes, maintaining a dynamic population with frequent emergence and competition of clones. In this way the population keeps fluctuating among genotypes.
 
 
 
