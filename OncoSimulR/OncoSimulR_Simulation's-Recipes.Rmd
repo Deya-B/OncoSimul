@@ -44,13 +44,75 @@ Fitness effects determine how advantageous or disadvantageous mutations are. The
 
 ## Strong/weak mutation and strong/weak selection
 
-Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous or weak mutation where the mutation rate is low.
+By taking into account the mutation rate and its selection effect, a model can be classified into different regimes considering whether there is a strong or a weak mutation and whether there is a strong or weak selection. 
 
-In OncoSimulR you can adjust functions, in specific, mu to be equal to a concrete mutation rate, 1e-6 would be a weak one and 1e-4 would be a strong one.
+Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous or weak mutation where the mutation rate is low. 
 
-Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately whereas in a weak selection regime the differences between different fitness are negligible or not large.
+Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately. This means there is a genotype that predominates among all the different genotypes in a population.  On the other hand, in a weak selection regime the differences between different fitness are negligible or not large. Thus, there will be many different mutant lineages in the population at the same time. 
 
-In OncoSimulR you can adjust functions to simulate these conditions, in particular, with fitness effect with values 0.1 to strong selection and 0.01 to weak selection.
+In the Strong Selection Weak Mutation (SSWM) regime, the positive selection of a mutation results in a succession of selective sweeps. This means that whenever a mutation occurs, it rapidly spreads through the population and ends fixing. Some time later another beneficial mutation may occur, resulting in the new genotype replacing the previous one. This regime is typical of small populations in which beneficial mutations are rare. Also in small populations the predominance of a new genotype is favoured by events such as drift. 
+
+In OncoSimulR, by using a small population, SSWM can be simulated. 
+
+```{r}
+set.seed(1)
+r7b <- rfitness(7, scale = c(1.2, 0, 1))
+
+## Large pop sizes: clonal interference
+(sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
+                        model = "McFL",
+                        mu = 1e-6,
+                        onlyCancer = FALSE,
+                        finalTime = 40000,
+                        initSize = 1e3,
+                        keepEvery = 4,
+                        detectionSize = 1e10))
+plot(sr7b, show = "genotypes")
+```
+We can observe how the WT genotype is fastly substituted by a new genotype, that predominates though a long time until another beneficial mutation appears and replaces the previous genotype. 
+
+When the population increases its size, its more likely that beneficial mutations appear more often, resulting in many genotypes coexisting at the same time, distancing ourselves from the SSWM regime. 
+
+This is a similar example as the previous one, but with a bigger population. 
+```{r}
+set.seed(1)
+r7b <- rfitness(7, scale = c(1.2, 0, 1))
+
+## Large pop sizes: clonal interference
+(sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
+                        model = "McFL",
+                        mu = 1e-6,
+                        onlyCancer = FALSE,
+                        finalTime = 400,
+                        initSize = 1e7,
+                        keepEvery = 4,
+                        detectionSize = 1e10))
+plot(sr7b, show = "genotypes")
+```
+As we can observe, there are several different subpopulations with different mutations. 
+
+However, over time there can be strong selection. It can happen that there is a moderately beneficial mutation, not strong enough to sweep the entire population, so that later a stronger mutation takes place and overcomes the previous mutation. Another possible cause is that a lineage suffers multiple mutations, being the first one beneficial, but is thanks to the effect of the following mutations that this lineage is strongly selected. 
+
+We can simulate this example just by increasing the time in our simulation: 
+```{r}
+set.seed(1)
+r7b <- rfitness(7, scale = c(1.2, 0, 1))
+
+## Large pop sizes: clonal interference
+(sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
+                        model = "McFL",
+                        mu = 1e-6,
+                        onlyCancer = FALSE,
+                        finalTime = 4000,
+                        initSize = 1e7,
+                        keepEvery = 4,
+                        detectionSize = 1e10))
+pdf("plot.pdf", width = 10, height = 7)  # Adjust dimensions for a larger plot
+plot(sr7b, show = "genotypes")
+dev.off()
+```
+
+This now belongs to the Strong Selection Strong Mutation (SSSM) regime. 
 
 ## Intra-tumour Heterogeneity (ITH)
 
