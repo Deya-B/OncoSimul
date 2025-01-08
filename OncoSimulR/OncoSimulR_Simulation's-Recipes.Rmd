@@ -3,7 +3,7 @@ title: "A recipe book for Simulations with OncoSimulR"
 author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerillo Sánchez, Rubén Rincón Álvarez"
 date: "9th January 2025"
 output: html_document
-bibliography: OncoSimulR-rmd.bib
+bibliography: OncoSimulR-rmd (1).bib
 ---
 
 ```{r setup, include=FALSE}
@@ -44,15 +44,19 @@ Fitness effects determine how advantageous or disadvantageous mutations are. The
 
 ## Strong/weak mutation and strong/weak selection
 
-By taking into account the mutation rate and its selection effect, a model can be classified into different regimes considering whether there is a strong or a weak mutation and whether there is a strong or weak selection. 
+By taking into account the mutation rate and its selection effect, a model can be classified into different regimes considering whether there is a **strong** or a **weak mutation** and whether there is a **strong** or **weak selection**. 
 
-Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous or weak mutation where the mutation rate is low. 
+Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous, or weak mutation, where the mutation rate is low. 
 
 Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately. This means there is a genotype that predominates among all the different genotypes in a population.  On the other hand, in a weak selection regime the differences between different fitness are negligible or not large. Thus, there will be many different mutant lineages in the population at the same time. 
 
-In the Strong Selection Weak Mutation (SSWM) regime, the positive selection of a mutation results in a succession of selective sweeps. This means that whenever a mutation occurs, it rapidly spreads through the population and ends fixing. Some time later another beneficial mutation may occur, resulting in the new genotype replacing the previous one. This regime is typical of small populations in which beneficial mutations are rare. Also in small populations the predominance of a new genotype is favoured by events such as drift. 
+In the **Strong Selection Weak Mutation (SSWM) regime**, the positive selection of a mutation results in a succession of selective sweeps. This means that whenever a mutation occurs, it rapidly spreads through the population and ends fixing. Some time later another beneficial mutation may occur, resulting in the new genotype replacing the previous one. This regime is typical of small populations in which beneficial mutations are rare. Also in small populations the predominance of a new genotype is favoured by events such as drift. 
 
-In OncoSimulR, by using a small population, SSWM can be simulated. 
+In OncoSimulR, by using a small population, SSWM can be simulated as follows: 
+
+```{r OncoSimulR, echo=FALSE}
+library(OncoSimulR)
+```
 
 ```{r}
 set.seed(1)
@@ -67,7 +71,7 @@ r7b <- rfitness(7, scale = c(1.2, 0, 1))
                         initSize = 1e3,
                         keepEvery = 4,
                         detectionSize = 1e10))
-plot(sr7b, show = "genotypes")
+plot(sr7b, show = "genotypes", legend = FALSE)
 ```
 We can observe how the WT genotype is fastly substituted by a new genotype, that predominates though a long time until another beneficial mutation appears and replaces the previous genotype. 
 
@@ -87,7 +91,7 @@ r7b <- rfitness(7, scale = c(1.2, 0, 1))
                         initSize = 1e7,
                         keepEvery = 4,
                         detectionSize = 1e10))
-plot(sr7b, show = "genotypes")
+plot(sr7b, show = "genotypes", legend = FALSE)
 ```
 As we can observe, there are several different subpopulations with different mutations. 
 
@@ -107,9 +111,7 @@ r7b <- rfitness(7, scale = c(1.2, 0, 1))
                         initSize = 1e7,
                         keepEvery = 4,
                         detectionSize = 1e10))
-pdf("plot.pdf", width = 10, height = 7)  # Adjust dimensions for a larger plot
-plot(sr7b, show = "genotypes")
-dev.off()
+plot(sr7b, show = "genotypes", legend = FALSE)
 ```
 
 This now belongs to the Strong Selection Strong Mutation (SSSM) regime. 
@@ -132,12 +134,13 @@ This heterogeneity has consequences for diagnosis, treatment and disease progres
 
 ### Modeling ITH in OncoSimulR
 The following scenarios are using the McFL model, which is based on the McFarland model of tumor growth. The most important characteristics of this model are the following:
+
 - Fitness-dependent Growth: Each genotype grows at a rate proportional to its fitness relative to the population's average fitness.
 - Competition: There is explicit competition among clones for shared resources or space.
 - Population Size Dynamics: The total population size is not fixed but fluctuates based on the relative fitness of clones.
 - Carrying Capacity: There is an implicit assumption of limited resources, which creates a competitive environment among clones.
 
-Since our objective was to simulate ITH with coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
+Since our objective was to simulate ITH, and therefore, coexistence of different genotypes within the same environment, we decided to use the McFl model because it adds competition between genotypes and models growth dynamics as a function of fitness. 
 
 ------------------------------------------------------------------------
 
@@ -148,10 +151,6 @@ Since our objective was to simulate ITH with coexistence of different genotypes 
 #### Scenario 1: Low fitness variations
 
 Starting from a random fitness landscape with few genotypes (3 genotypes) and low variations in fitness (therefore, fitness is almost neutral):
-
-```{r OncoSimulR, echo=FALSE}
-library(OncoSimulR)
-```
 
 ```{r}
 set.seed(1)
@@ -187,7 +186,7 @@ We can see the final population composition by running `out1`:
 out1
 ```
 
-The population consists of one dominant genotype (C) and another three stablished genotypes but with lower populations.
+The population consists of one dominant genotype (C) and another three established genotypes but with lower populations.
 
 By plotting the results we can obtain more information:
 
@@ -196,7 +195,7 @@ plot(out1, show = "genotypes", addtot = TRUE, plotDiversity = TRUE,
      thinData = TRUE, type = "line", legend.ncols = 4, ylim = c(1,1e8))
 ```
 
-The Diversity plot (the small plot on the top) represents **Shannon's entropy**, which indicates the diversity indices within the population by time. We will use this plot to interpret the results of the simulations with regards to intra-tumour heterogeneity. 
+The Diversity plot (referring to the small plot on the top) represents **Shannon's entropy**, which indicates the diversity indices within the population by time. We will use this plot to interpret the results of the simulations with regards to intra-tumour heterogeneity. 
 
 First we observe a peak in heterogeneity, then the population settles and we can see a stable population with one dominant genotype and three minor ones. This can be considered **low intra-tumour heterogeneity** (ITH) because the population is not evenly distributed among multiple genotypes and the dominance of one genotype reduces overall diversity. In fact, in the Diversity plot we can observe the Shannon's entropy settles in a low value (around 0.2) indicating low diversity indices.
 
@@ -277,7 +276,6 @@ These results show a low to moderate sustained diversity (\~0.5).
 
 ------------------------------------------------------------------------
 
-#### Scenario 1
 #### Scenario 1
 
 In this scenario a very weak selection and many different interfering genes allow for mutations to thrive and coexist.
