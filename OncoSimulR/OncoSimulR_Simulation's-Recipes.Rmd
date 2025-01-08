@@ -3,7 +3,7 @@ title: "A recipe book for Simulations with OncoSimulR"
 author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerillo Sánchez, Rubén Rincón Álvarez"
 date: "9th January 2025"
 output: html_document
-bibliography: OncoSimulR-rmd (1).bib
+bibliography: OncoSimulR-rmd.bib
 ---
 
 ```{r setup, include=FALSE}
