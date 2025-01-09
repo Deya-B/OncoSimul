@@ -416,16 +416,16 @@ plot(my_DAG) #Direct Acyclic Graph
 plot(evag, use_ggrepel = TRUE) #Fitness Landscape
 ```
 
-We can now run 1 or many simulations using the mclapply() function in this example, we will run only 10 so that it goes fast,as we won't be going alogn all of them.
-It is fundamental that the model is set to "Const", so that the population size remains constant. The time our simulations will be running can be low, as tunneling will occur pretty fast. The size of our population must be enough to get out of the SSWM regime and the mutation rate about the same. the variable keepPhylog allow us to onserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
+We can now run 1 or many simulations using the mclapply() function in this example, we will run only 100 so that it goes fast, as we won't be going along all of them.
+It is fundamental that the model is set to "Const", so that the population size remains constant. The time our simulations will be running can be low, as tunneling will occur pretty fast. The size of our population must be enough to get out of the SSWM regime and the mutation rate should be relatively fast. The variable keepPhylog allow us to conserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
 
 ```{r tunneling-sim}
 # Not Monotypic Population
 set.seed(6) #For reproducibility
-not_mono_pop <- mclapply(1:10, function(x) oncoSimulIndiv(my_DAG, model = "Const",
-                                                          	mu = 1e-4,
+not_mono_pop <- mclapply(1:100, function(x) oncoSimulIndiv(my_DAG, model = "Const",
+                                                          	mu = 1e-3,
                                                           	onlyCancer = FALSE,
-                                                          	finalTime = 50,
+                                                          	finalTime = 100,
                                                           	keepPhylog = TRUE,
                                                           	keepEvery = TRUE,
                                                             initSize = 1e5), #high pop.
@@ -437,13 +437,85 @@ The table shows the number of cells of each genotype. The columns are (from left
 The plot shows the emergence and disappearance of different genotypes as lines, so all can be seen clearly.
 
 ```{r tunneling-plots}
-head(not_mono_pop[[2]]$pops.by.time) #Population size of each gebotype by time.
-plot(not_mono_pop[[2]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
+head(not_mono_pop[[1]]$pops.by.time) #Population size of each gebotype by time.
+plot(not_mono_pop[[1]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
 ```
 
 As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear (with mu = 1e-3 it would be almost intant). Thus, we have STUN.
 Stochastic Tunneling is just one way of crossing fitness valleys and there exist some variations of STUN depending on the parameters of our simulations.
-We won't enter in more detail as we would run out of time. For more details on STUN, please check [@Iwasa2004] and [@Weissman2009]. 
+One example is Sequential Fixation, which happens when all genotypes of the LOD fixate. This normally happens with neutral valleys but, under very precise circumstances, it can also happen with deleterious valleys just like STUN. The key parameter here is siez, which must be very small. For it to work properly, the mutation rates of "A" and "B" were changes with a named vector. If both were too fast, STUN would happen; if both were too slow, nothing would happen.
+We won't enter in more detail as we would run out of time. For more details on STUN, please check [@Iwasa2004] and [@Weissman2009].
+
+# Sequential Fixation
+```{r seq-fix}
+# DAG: WT -> A -> B
+my_DAG <- allFitnessEffects(
+  data.frame(parent = c("Root", "A"),
+             child = c("A", "B"),
+             s = c(-0.02, 2),
+             sh = -0.02,
+             typeDep = "MN"),
+  drvNames = c("A", "B"))
+
+set.seed(1)
+mu_rates <- c("A" = 1e-5, "B" = 1e-1)
+Seq_Fix <- mclapply(1:100,function(x) oncoSimulIndiv(my_DAG,
+                                    model = "Const",
+                                    mu = mu_rates,
+                                    onlyCancer = FALSE,
+                                    finalTime = 1000,
+                                    keepPhylog = TRUE,
+                                    keepEvery = TRUE,
+                                    initSize = 100), #low pop.
+                       mc.cores = mc.cores)
+
+(Seq_Fix[[1]]$GenotypesLabels)
+(Seq_Fix[[1]]$pops.by.time)
+plot(Seq_Fix[[1]], show = "genotypes", type = "line")
+plot(Seq_Fix[[1]], show = "genotypes")
+```
+
+# Checking our simulations
+Now, of course, we should check if our results are sufficient. This is, wi will check the percentage of simulations in which we obtain the desired genotype.
+For STUN it is a easy as making a vector with all the GenotypeLabels of all the simulations and making a table with it. For SeqFix, the table will tell us how many times the double-mutant is obtained, but we should also check if no STUN has happend by making sure that one single-mutant is fixated.
+
+```{r just-checking}
+# STUN:
+STUN_genotypes <- c()
+for (sim in STUN) {
+  STUN_genotypes <- c(STUN_genotypes, sim[["GenotypesLabels"]])}
+rm(sim)
+table(STUN_genotypes)
+
+# Seq-Fix:
+SeqFix_genotypes <- c()
+ID <- 0
+IDs <- c()
+for (sim in Seq_Fix) {
+  ID <- ID + 1
+  SeqFix_genotype <- c(SeqFix_genotype, sim[["GenotypesLabels"]])
+  if (sim[["GenotypesLabels"]][length(sim[["GenotypesLabels"]])-1]=="A, B") {
+    IDs <- c(IDs, ID)
+  }
+}
+rm(sim)
+table(SeqFix_genotype)
+
+count_B_fix <- 0
+for (ID in IDs) {
+  rower <- 0
+  gen_labels <- Seq_Fix[[ID]]$GenotypesLabels
+  span <- Seq_Fix[[ID]]$pops.by.time[,length(gen_labels)+1]
+  for (idx in span) {
+    if (idx >= 90) {rower <- rower + 1}}
+  if (rower >= 1) {count_B_fix <- count_B_fix + 1}
+}
+rm(ID)
+count_B_fix
+```
+
+The results will vary depending on how the parameters are set ad which seed we're using. As it was mentioned before, valley crossing has many variants and explaining all would take a long time. Hopefuly, this broad painting of the concepts will be sufficient to understand the very basics.
+
   
 ## References
 
