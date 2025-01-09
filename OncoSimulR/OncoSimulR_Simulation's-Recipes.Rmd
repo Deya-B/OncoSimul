@@ -46,9 +46,9 @@ Fitness effects determine how advantageous or disadvantageous mutations are. The
 
 By taking into account the mutation rate and its selection effect, a model can be classified into different regimes considering whether there is a **strong** or a **weak mutation** and whether there is a **strong** or **weak selection**. 
 
-Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous, or weak mutation, where the mutation rate is low. 
+Strong mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous, or weak mutation, where the mutation rate is low. 
 
-Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately. This means there is a genotype that predominates among all the different genotypes in a population.  On the other hand, in a weak selection regime the differences between different fitness are negligible or not large. Thus, there will be many different mutant lineages in the population at the same time. 
+Strong selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately. This means there is a genotype that predominates among all the different genotypes in a population.  On the other hand, in a weak selection regime the differences between different fitness are negligible or not large. Thus, there will be many different mutant lineages in the population at the same time. 
 
 Whenever there is a strong selection, and a tumour population consists of a single genotype, we can refer to the population as a monotypic population, where all the cells share the same mutations.
 
