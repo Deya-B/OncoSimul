@@ -477,15 +477,34 @@ plot(Seq_Fix[[1]], show = "genotypes")
 
 # Checking our simulations
 Now, of course, we should check if our results are sufficient. This is, wi will check the percentage of simulations in which we obtain the desired genotype.
-For STUN it is a easy as making a vector with all the GenotypeLabels of all the simulations and making a table with it. For SeqFix, the table will tell us how many times the double-mutant is obtained, but we should also check if no STUN has happend by making sure that one single-mutant is fixated.
+First, we check which simulations have the double-mutant, then, we check if it has reached fixation and, for SeqFix, if the single-mutant has reached fixation.
+This may sound a bit sketchy, but it is a quick way to see more or less how many of our simulations reached the desired condition.
 
-```{r just-checking}
 # STUN:
 STUN_genotypes <- c()
+ID <- 0
+IDs <- c()
 for (sim in STUN) {
-  STUN_genotypes <- c(STUN_genotypes, sim[["GenotypesLabels"]])}
+  ID <- ID + 1
+  STUN_genotype <- c(STUN_genotype, sim[["GenotypesLabels"]])
+  if (sim[["GenotypesLabels"]][length(sim[["GenotypesLabels"]])-1]=="A, B") {
+    IDs <- c(IDs, ID)
+  }
+}
 rm(sim)
 table(STUN_genotypes)
+
+count_AB_fix <- 0
+for (ID in IDs) {
+  rower <- 0
+  gen_labels <- STUN[[ID]]$GenotypesLabels
+  span <- STUN[[ID]]$pops.by.time[,length(gen_labels)]
+  for (idx in span) {
+    if (idx >= 1e4) {rower <- rower + 1}}
+  if (rower >= 1) {count_AB_fix <- count_AB_fix + 1}
+}
+rm(ID)
+count_AB_fix
 
 # Seq-Fix:
 SeqFix_genotypes <- c()
@@ -499,7 +518,7 @@ for (sim in Seq_Fix) {
   }
 }
 rm(sim)
-table(SeqFix_genotype)
+table(SeqFix_genotypes)
 
 count_B_fix <- 0
 for (ID in IDs) {
