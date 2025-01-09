@@ -39,7 +39,7 @@ Fitness in the context of cancer evolution refers to the capacity of a genotype 
 
 Fitness effects determine how advantageous or disadvantageous mutations are. They are the core of OncoSimulR's simulations. It's important to make them simple but flexible, to be able to simulate many different situations. You define fitness values based on genotypes or specific mutations. Fitness landscapes can be additive (fitness is summed across mutations) or epistatic (interactions between mutations influence fitness),[@osr].
 
-<!-- “Monotypic population” means that for virtually all the time (except for very brief periods of fast clonal sweeps) there is a single genotype, defined with respect to the mutations being modelled, [@apg2024]. …a clone is fully replaced by another clone, where clone is defined with respect to the mutations of relevance; in other words, for the mutations of relevance, the population is monotypic (also from “A picture guide…”) In cancer progression there are two key terms with the power of shaping the tumour dynamics, [@apg2024]. -->
+
 
 
 ## Strong/weak mutation and strong/weak selection
@@ -49,6 +49,8 @@ By taking into account the mutation rate and its selection effect, a model can b
 Strong and weak mutation refers to a regime or landscape where the frequency of mutation rate can be strong, like in late stage cancer tumours where genetic imbalance is dangerous, or weak mutation, where the mutation rate is low. 
 
 Strong and weak selection refers to a regime or landscape where fitness differences between genotypes are large and beneficial mutations are fixed immediately. This means there is a genotype that predominates among all the different genotypes in a population.  On the other hand, in a weak selection regime the differences between different fitness are negligible or not large. Thus, there will be many different mutant lineages in the population at the same time. 
+
+Whenever there is a strong selection, and a tumour population consists of a single genotype, we can refer to the population as a monotypic population, where all the cells share the same mutations.
 
 In the **Strong Selection Weak Mutation (SSWM) regime**, the positive selection of a mutation results in a succession of selective sweeps. This means that whenever a mutation occurs, it rapidly spreads through the population and ends fixing. Some time later another beneficial mutation may occur, resulting in the new genotype replacing the previous one. This regime is typical of small populations in which beneficial mutations are rare. Also in small populations the predominance of a new genotype is favoured by events such as drift. 
 
