@@ -64,7 +64,6 @@ library(OncoSimulR)
 set.seed(1)
 r7b <- rfitness(7, scale = c(1.2, 0, 1))
 
-## Large pop sizes: clonal interference
 (sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
                         model = "McFL",
                         mu = 1e-6,
@@ -84,7 +83,6 @@ This is a similar example as the previous one, but with a bigger population.
 set.seed(1)
 r7b <- rfitness(7, scale = c(1.2, 0, 1))
 
-## Large pop sizes: clonal interference
 (sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
                         model = "McFL",
                         mu = 1e-6,
@@ -104,7 +102,6 @@ We can simulate this example just by increasing the time in our simulation:
 set.seed(1)
 r7b <- rfitness(7, scale = c(1.2, 0, 1))
 
-## Large pop sizes: clonal interference
 (sr7b <- oncoSimulIndiv(allFitnessEffects(genotFitness = r7b),
                         model = "McFL",
                         mu = 1e-6,
