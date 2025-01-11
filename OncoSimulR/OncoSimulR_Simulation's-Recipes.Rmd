@@ -378,6 +378,7 @@ According to [@Iwasa2004], the easiest way is to have a DAG as 0 → 1 → 2 and
 For this very same DAG (with 2 genes), [@Weissman2009] provide more useful indications, such as how the population size and the selective disadvantage (parameter sh in OncoSimul) for intermediate single-mutants (“A” and “B”) will affect the type of valley crossing that the cell population experiences. What we should take home from this paper is to keep the population above 1/muA and the sh variable close to 0. Again, this paper specifies that mu2 is the mutation rate from the single-mutant to the double-mutant. We are not sure if that is possible in OncoSimul, but haven’t found out how. So, it is quite possible that these models are somewhat different to those of the papers.
 
 # Modeling STUN with OncoSimulR
+
 First, we need to call some packages, as well as setting the number of cores for our parallelized functions depending on which OS we're using.
 
 ```{r pakages-cores, message=FALSE, warning=FALSE}
@@ -387,6 +388,7 @@ library(igraph)
 library(parallel)
 igraph_options(vertex.color = "SkyBlue2")
 
+# This is for the parallel
 if(.Platform$OS.type == "windows") {
   mc.cores <- 1
 } else {
@@ -394,15 +396,17 @@ if(.Platform$OS.type == "windows") {
 }
 ```
 
-Then, we need to create the DAG. For this, we will use the allFitnessEffects function with a data.frame that contains the parental relationships of our genotypes. The variable "s" is the fitness for the genotypes that do not violate the order retrictions, 15.667 is a number tailored to make "A, B"'s fitness roughly equal to 10 (as suggested in the literature. The "sh" variable is the fitness penalty for the genotypes that do not follow the DAG, again inspired by the literature. The type of dependancy is set to "MN" (or "AND"), but does not really matter in this case.
+Then, we need to create the DAG.
+For this, we will use the allFitnessEffects() function with a data.frame that contains the parental relationships of our genotypes.
+The variable "s" is the fitness for the genotypes that do not violate the order retrictions, 15.667 is a number tailored to make "A, B"'s fitness roughly equal to 10 (as suggested in the literature. The "sh" variable is the fitness penalty for the genotypes that do not follow the DAG, again inspired by the literature. The type of dependency is set to "MN" (or "AND"), but does not really matter in this case.
 
 ```{r tunneling-DAG}
 # DAG: WT -> A -> B
-my_DAG <- allFitnessEffects(
+STUN_DAG <- allFitnessEffects(
   data.frame(parent = c("Root", "A"),
          	child = c("A", "B"),
          	s = c(-0.4, 15.667),
-         	sh = -0.004,
+         	sh = -0.4,
          	typeDep = "MN"),
   drvNames = c("A", "B"))
 ```
@@ -410,18 +414,20 @@ my_DAG <- allFitnessEffects(
 Now, we can show different plots for our DAG and our Fintess Landsacpe, as well as a table with the fitness values for all posible combination of genes.
 
 ```{r DAG-plots}
-plot(my_DAG) #Direct Acyclic Graph
-(evag <- evalAllGenotypes(my_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
+plot(STUN_DAG) #Direct Acyclic Graph
+(evag <- evalAllGenotypes(STUN_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
 plot(evag, use_ggrepel = TRUE) #Fitness Landscape
 ```
 
 We can now run 1 or many simulations using the mclapply() function in this example, we will run only 100 so that it goes fast, as we won't be going along all of them.
-It is fundamental that the model is set to "Const", so that the population size remains constant. The time our simulations will be running can be low, as tunneling will occur pretty fast. The size of our population must be enough to get out of the SSWM regime and the mutation rate should be relatively fast. The variable keepPhylog allow us to conserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
+It is fundamental that the model is set to "Const", so that the population size remains constant.
+The time our simulations will be running can be low, as tunneling will occur pretty fast.
+The size of our population must be enough to get out of the SSWM regime and the mutation rate should be relatively fast.
+The variable keepPhylog allow us to conserve the progression of our population and keepEvery is set to TRUE for maximum accuracy.
 
 ```{r tunneling-sim}
-# Not Monotypic Population
 set.seed(6) #For reproducibility
-not_mono_pop <- mclapply(1:100, function(x) oncoSimulIndiv(my_DAG, model = "Const",
+STUN <- mclapply(1:100, function(x) oncoSimulIndiv(STUN_DAG, model = "Const",
                                                           	mu = 1e-3,
                                                           	onlyCancer = FALSE,
                                                           	finalTime = 100,
@@ -432,60 +438,34 @@ not_mono_pop <- mclapply(1:100, function(x) oncoSimulIndiv(my_DAG, model = "Cons
 ```
 
 We can see how our population evolves with the following tables and graphs.
-The table shows the number of cells of each genotype. The columns are (from left to right): Time, "WT", "A", "A, B" and "B".
+The table shows the number of cells of each genotype.
+The columns are (from left to right): Time, "WT", "A", "A, B" and "B".
 The plot shows the emergence and disappearance of different genotypes as lines, so all can be seen clearly.
 
 ```{r tunneling-plots}
-head(not_mono_pop[[1]]$pops.by.time) #Population size of each gebotype by time.
-plot(not_mono_pop[[1]], show = "genotypes", type = "line") #Grwoth lines for our genotypes.
+head(STUN[[1]]$pops.by.time) #Population size of each genotype by time.
+plot(STUN[[1]], show = "genotypes")
+plot(STUN[[1]], show = "genotypes", type = "line") #Growth lines for our genotypes.
 ```
 
-As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear (with mu = 1e-3 it would be almost intant). Thus, we have STUN.
-Stochastic Tunneling is just one way of crossing fitness valleys and there exist some variations of STUN depending on the parameters of our simulations.
-One example is Sequential Fixation, which happens when all genotypes of the LOD fixate. This normally happens with neutral valleys but, under very precise circumstances, it can also happen with deleterious valleys just like STUN. The key parameter here is siez, which must be very small. For it to work properly, the mutation rates of "A" and "B" were changes with a named vector. If both were too fast, STUN would happen; if both were too slow, nothing would happen.
-We won't enter in more detail as we would run out of time. For more details on STUN, please check [@Iwasa2004] and [@Weissman2009].
-
-# Sequential Fixation
-```{r seq-fix}
-# DAG: WT -> A -> B
-my_DAG <- allFitnessEffects(
-  data.frame(parent = c("Root", "A"),
-             child = c("A", "B"),
-             s = c(-0.02, 2),
-             sh = -0.02,
-             typeDep = "MN"),
-  drvNames = c("A", "B"))
-
-set.seed(1)
-mu_rates <- c("A" = 1e-5, "B" = 1e-1)
-Seq_Fix <- mclapply(1:100,function(x) oncoSimulIndiv(my_DAG,
-                                    model = "Const",
-                                    mu = mu_rates,
-                                    onlyCancer = FALSE,
-                                    finalTime = 1000,
-                                    keepPhylog = TRUE,
-                                    keepEvery = TRUE,
-                                    initSize = 100), #low pop.
-                       mc.cores = mc.cores)
-
-(Seq_Fix[[1]]$GenotypesLabels)
-(Seq_Fix[[1]]$pops.by.time)
-plot(Seq_Fix[[1]], show = "genotypes", type = "line")
-plot(Seq_Fix[[1]], show = "genotypes")
-```
+As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear (with mu = 1e-3 it would be almost instant).
+Thus, we have STUN.
 
 # Checking our simulations
-Now, of course, we should check if our results are sufficient. This is, wi will check the percentage of simulations in which we obtain the desired genotype.
-First, we check which simulations have the double-mutant, then, we check if it has reached fixation and, for SeqFix, if the single-mutant has reached fixation.
+
+Now, of course, we should check if our results are sufficient.
+We will check the percentage of simulations in which we obtain the desired genotypes.
+First we'll get a table that shows the presence of each possible genotypes and, for those that have the one(s) that we're interested in, we'll check if they've been fixated.
 This may sound a bit sketchy, but it is a quick way to see more or less how many of our simulations reached the desired condition.
 
+```{r STUN-check}
 # STUN:
 STUN_genotypes <- c()
 ID <- 0
 IDs <- c()
 for (sim in STUN) {
   ID <- ID + 1
-  STUN_genotype <- c(STUN_genotype, sim[["GenotypesLabels"]])
+  STUN_genotypes <- c(STUN_genotypes, sim[["GenotypesLabels"]])
   if (sim[["GenotypesLabels"]][length(sim[["GenotypesLabels"]])-1]=="A, B") {
     IDs <- c(IDs, ID)
   }
@@ -499,19 +479,69 @@ for (ID in IDs) {
   gen_labels <- STUN[[ID]]$GenotypesLabels
   span <- STUN[[ID]]$pops.by.time[,length(gen_labels)]
   for (idx in span) {
-    if (idx >= 1e4) {rower <- rower + 1}}
+    if (idx >= 1e5) {rower <- rower + 1}}
   if (rower >= 1) {count_AB_fix <- count_AB_fix + 1}
 }
 rm(ID)
-count_AB_fix
+print(paste0("STUN: ",count_AB_fix,"%"))
+```
 
-# Seq-Fix:
+As we can see, with this parameters, all simulations run present STUN.
+However, beacause OncoSimulR does not allow us to modify the mutational rate from single-mutants to double-mutants, these parameters have to be tweaked in a trial and error manner and few more things can be said about this scenario, other than simulating STUN is possible in OncoSimulR.
+
+# Sequential Fixation
+
+Stochastic Tunneling is just one way of crossing fitness valleys and there exist some variations of STUN depending on the parameters of our simulations.
+One example is Sequential Fixation, which happens when all genotypes of the LOD fixate.
+This normally happens with neutral valleys but, under very precise circumstances, it can also happen with deleterious valleys just like STUN.
+We won't enter in more detail as we would run out of time.
+For more details on STUN, please check [@Iwasa2004] and [@Weissman2009].
+
+```{r SeqFix-DAG}
+# SeqFix-DAG: WT -> A -> B
+SeqFix_DAG <- allFitnessEffects(
+  data.frame(parent = c("Root", "A"),
+             child = c("A", "B"),
+             s = c(-0.02, 2),
+             sh = -0.02,
+             typeDep = "MN"),
+  drvNames = c("A", "B"))
+
+(evag <- evalAllGenotypes(SeqFix_DAG, order = FALSE, addwt = TRUE)) #The Fitness of all posible genotypes
+plot(evag, use_ggrepel = TRUE) #Fitness Landscape
+```
+
+For the Sequential Fixation, the valley is shallower than for Stochastic Tunneling, so it's easier for the single-mutants to fixate.
+
+The key parameter here is size, which must be very small.
+For it to work properly, the mutation rates of "A" and "B" were changed with a named vector.
+If both were too fast, STUN would happen; if both were too slow, nothing would happen.
+
+```{r SeqFix-Sims, results='hide'}
+# SeqFix-Sims
+set.seed(1)
+mu_rates <- c("A" = 1e-4, "B" = 1e-2)
+Seq_Fix <- mclapply(1:100,function(x) oncoSimulIndiv(SeqFix_DAG,
+                                    model = "Const",
+                                    mu = mu_rates,
+                                    onlyCancer = FALSE,
+                                    finalTime = 1000,
+                                    keepPhylog = TRUE,
+                                    keepEvery = TRUE,
+                                    initSize = 100), #low pop.
+                       mc.cores = mc.cores)
+```
+
+In this case we'll run the checks before plotting, because SeqFix does not happen 100% of the time and the parallel makes it impossible to know beforehand which simulation will show SeqFix despite having set the seed beforehand.
+
+```{r SeqFix-check}
+# SeqFix-check:
 SeqFix_genotypes <- c()
 ID <- 0
 IDs <- c()
 for (sim in Seq_Fix) {
   ID <- ID + 1
-  SeqFix_genotype <- c(SeqFix_genotype, sim[["GenotypesLabels"]])
+  SeqFix_genotypes <- c(SeqFix_genotypes, sim[["GenotypesLabels"]])
   if (sim[["GenotypesLabels"]][length(sim[["GenotypesLabels"]])-1]=="A, B") {
     IDs <- c(IDs, ID)
   }
@@ -520,20 +550,36 @@ rm(sim)
 table(SeqFix_genotypes)
 
 count_B_fix <- 0
+ID2 <-0
+idx <- 0
 for (ID in IDs) {
+  ID2 <- ID2 + 1
   rower <- 0
   gen_labels <- Seq_Fix[[ID]]$GenotypesLabels
   span <- Seq_Fix[[ID]]$pops.by.time[,length(gen_labels)+1]
   for (idx in span) {
     if (idx >= 90) {rower <- rower + 1}}
   if (rower >= 1) {count_B_fix <- count_B_fix + 1}
+  idx <- ID2
 }
-rm(ID)
-count_B_fix
+rm(ID, ID2, IDs)
+print(paste0("SeqFix: ",count_B_fix,"%"))
 ```
 
-The results will vary depending on how the parameters are set ad which seed we're using. As it was mentioned before, valley crossing has many variants and explaining all would take a long time. Hopefuly, this broad painting of the concepts will be sufficient to understand the very basics.
+As we can see, with these parameters, Sequentual Fixation only hapens about 60% of the time, and stochastic tunneling is still present (though in a smaller proportion).
+Also, now that we know which simulations present SeqFix, we can draw the plots.
 
+```{r SeqFix-plots}
+# SeqFix-plots
+plot(Seq_Fix[[idx]], show = "genotypes", type = "line")
+plot(Seq_Fix[[idx]], show = "genotypes")
+```
+
+The results will vary depending on how the parameters are set and which seed we're using.
+The fact that we are not allowed to tweak the mutational rate from single-mutants to double-mutants makes it harder to get the parameters right, but is still manageable.
+
+As it was mentioned before, valley crossing has many variants and explaining all would take a long time.
+Hopefully, this broad painting of the concepts will be sufficient to understand the very basics.
   
 ## References
 
