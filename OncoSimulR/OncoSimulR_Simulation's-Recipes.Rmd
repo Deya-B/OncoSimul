@@ -1,6 +1,6 @@
 ---
 title: "A recipe book for Simulations with OncoSimulR"
-author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerillo Sánchez, Rubén Rincón Álvarez"
+author: "David Moreno Gambín, Deyanira Borroto Alburquerque, Guillermo Cerrillo Sánchez, Rubén Rincón Álvarez"
 date: "9th January 2025"
 output: html_document
 bibliography: OncoSimulR-rmd.bib
@@ -448,7 +448,7 @@ plot(STUN[[1]], show = "genotypes")
 plot(STUN[[1]], show = "genotypes", type = "line") #Growth lines for our genotypes.
 ```
 
-As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear (with mu = 1e-3 it would be almost instant).
+As it can be seen, intermediate single-mutants appear but do not fixate, and the double-mutant fixates quite fast when “A” or “B” appear.
 Thus, we have STUN.
 
 # Checking our simulations
@@ -580,10 +580,10 @@ The fact that we are not allowed to tweak the mutational rate from single-mutant
 
 As it was mentioned before, valley crossing has many variants and explaining all would take a long time.
 Hopefully, this broad painting of the concepts will be sufficient to understand the very basics.
-  
-## References
 
 ## Session Info
 ```{r sessionInfo}
 sessionInfo()
 ```
+
+## References
